@@ -62,7 +62,7 @@ def move_starship(scrn, key):  # 플레이어 기체 이동
     scrn.blit(img_sship[3], [ss_x - 8, ss_y + 40 + (tmr % 3) * 2]) #엔진 불꽃 그리기
     scrn.blit(img_sship[ss_d], [ss_x - 37, ss_y - 48]) #기체 그리기
 ```
-3. 탄환 발사 함수
+3. 탄환 발사 함수(1발씩일 때)
 ```py
 msl_f = False #탄환 발사중인지 체크 변수
 msl_x = 0 #탄환 x좌표
@@ -84,4 +84,27 @@ def move_missile(scrn):  # 탄환 이동
         scrn.blit(img_weapon, [msl_x - 10, msl_y - 32]) #탄환 이미지 그리기
         if msl_y < 0: #탄환이 화면 밖으로 나가면...
             msl_f = False #탄환 미발사 모드
+```
+4. 탄환 발사 함수(연속으로 발사일 때)
+```py
+MISSILE_MAX = 200 #최대 탄환 수
+msl_no = 0 #탄환 발사에 사용할 리스트 인덱스
+msl_f = [False] * MISSILE_MAX #탄환 발사 중인지 체크 리스트
+msl_x = [0] * MISSILE_MAX #탄환의 x좌표
+msl_y = [0] * MISSILE_MAX #탄환의 y좌표
+
+def set_missile():  # 플레이어 기체 발사 탄환 설정
+    global msl_no 
+    msl_f[msl_no] = True #탄환 발사 플래그
+    msl_x[msl_no] = ss_x #탄환의 x좌표 대입
+    msl_y[msl_no] = ss_y - 50 #탄환의 y좌표 대입
+    msl_no = (msl_no + 1) % MISSILE_MAX #탄환 변호 계산
+
+def move_missile(scrn):  # 탄환 이동
+    for i in range(MISSILE_MAX):
+        if msl_f[i] == True: #탄환이 발사 상태라면
+            msl_y[i] = msl_y[i] - 36 #y좌표 계산
+            scrn.blit(img_weapon, [msl_x[i] - 10, msl_y[i] - 32]) #탄환 이미지 그리기
+            if msl_y[i] < 0: #탄환 화면 밖으로 나가면
+                msl_f[i] = False #탄환삭제
 ```
