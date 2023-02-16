@@ -3,12 +3,12 @@ import sys
 from pygame.locals import *
 
 # 이미지 로딩
-img_galaxy = pygame.image.load("image_gl/galaxy.png")
+img_galaxy = pygame.image.load("image_gl/galaxy.png") #배경이미지
 img_sship = [
-    pygame.image.load("image_gl/starship.png"),
-    pygame.image.load("image_gl/starship_l.png"),
-    pygame.image.load("image_gl/starship_r.png"),
-    pygame.image.load("image_gl/starship_burner.png")
+    pygame.image.load("image_gl/starship.png"), #기본 이미지(0번)
+    pygame.image.load("image_gl/starship_l.png"), #왼쪽 기운 이미지(1번)
+    pygame.image.load("image_gl/starship_r.png"), #오른쪽 기운 이미지(2번)
+    pygame.image.load("image_gl/starship_burner.png") #불꽃
 ]
 
 tmr = 0
@@ -21,7 +21,7 @@ ss_d = 0
 
 def move_starship(scrn, key):  # 플레이어 기체 이동
     global ss_x, ss_y, ss_d
-    ss_d = 0
+    ss_d = 0 #기본 기체 이미지
     if key[K_UP] == 1:
         ss_y = ss_y - 20
         if ss_y < 80:
@@ -31,17 +31,17 @@ def move_starship(scrn, key):  # 플레이어 기체 이동
         if ss_y > 640:
             ss_y = 640
     if key[K_LEFT] == 1:
-        ss_d = 1
+        ss_d = 1 #왼쪽 이미지
         ss_x = ss_x - 20
         if ss_x < 40:
             ss_x = 40
     if key[K_RIGHT] == 1:
-        ss_d = 2
+        ss_d = 2 #오른쪽 이미지
         ss_x = ss_x + 20
         if ss_x > 920:
             ss_x = 920
-    scrn.blit(img_sship[3], [ss_x - 8, ss_y + 40 + (tmr % 3) * 2])
-    scrn.blit(img_sship[ss_d], [ss_x - 37, ss_y - 48])
+    scrn.blit(img_sship[3], [ss_x - 8, ss_y + 40 + (tmr % 3) * 2]) #엔진 불꽃 그리기
+    scrn.blit(img_sship[ss_d], [ss_x - 37, ss_y - 48]) #기체 그리기
 
 
 def main():  # 메인 루프
