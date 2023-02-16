@@ -62,3 +62,26 @@ def move_starship(scrn, key):  # 플레이어 기체 이동
     scrn.blit(img_sship[3], [ss_x - 8, ss_y + 40 + (tmr % 3) * 2]) #엔진 불꽃 그리기
     scrn.blit(img_sship[ss_d], [ss_x - 37, ss_y - 48]) #기체 그리기
 ```
+3. 탄환 발사 함수
+```py
+msl_f = False #탄환 발사중인지 체크 변수
+msl_x = 0 #탄환 x좌표
+msl_y = 0 #탄환 y좌표
+if key[K_SPACE] == 1: #스페이스 키를 누르면
+    set_missile() #탄환 발사
+
+def set_missile():  # 플레이어 기체 발사 탄환 설정
+    global msl_f, msl_x, msl_y
+    if msl_f == False: #탄환이 발사되지 않았다면!
+        msl_f = True #탄환 발사 모드로 설정
+        msl_x = ss_x #x 좌표는 기체 앞 끝
+        msl_y = ss_y - 50 #y 좌표는 기체
+
+def move_missile(scrn):  # 탄환 이동
+    global msl_f, msl_y
+    if msl_f == True: #탄환 발사 모드
+        msl_y = msl_y - 36 #y 좌표 계산
+        scrn.blit(img_weapon, [msl_x - 10, msl_y - 32]) #탄환 이미지 그리기
+        if msl_y < 0: #탄환이 화면 밖으로 나가면...
+            msl_f = False #탄환 미발사 모드
+```

@@ -57,7 +57,6 @@ def set_missile():  # 플레이어 기체 발사 탄환 설정
         msl_x = ss_x #x 좌표는 기체 앞 끝
         msl_y = ss_y - 50 #y 좌표는 기체
 
-
 def move_missile(scrn):  # 탄환 이동
     global msl_f, msl_y
     if msl_f == True: #탄환 발사 모드
