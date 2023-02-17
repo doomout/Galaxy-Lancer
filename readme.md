@@ -108,3 +108,11 @@ def move_missile(scrn):  # 탄환 이동
             if msl_y[i] < 0: #탄환 화면 밖으로 나가면
                 msl_f[i] = False #탄환삭제
 ```
+5. 탄환 발사에 딜레이 주는 아이디어
+```py
+key_spc = 0 #스페이스를 눌렀을 때 사용할 변수
+
+key_spc = (key_spc + 1) * key[K_SPACE] #스페이스 키를 누르는 동안 변수 값 증가
+if key_spc % 5 == 1: #스페이스 누른 후, 5프레임마다 탄환 발사(탄환 딜레이)
+    set_missile() #탄환 발사
+```
