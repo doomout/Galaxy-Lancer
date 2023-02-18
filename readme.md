@@ -144,7 +144,10 @@ def move_missile(scrn):  # 탄환 이동
         if msl_f[i] == True: #탄환이 발사 되었다면~
             msl_x[i] = msl_x[i] + 36 * math.cos(math.radians(msl_a[i])) #x좌표 계산
             msl_y[i] = msl_y[i] + 36 * math.sin(math.radians(msl_a[i])) #y좌표 계산
-            img_rz = pygame.transform.rotozoom(img_weapon, -90 - msl_a[i], 1.0) #날아가는 각도의 회전 이미지 생성
+            
+            #날아가는 각도의 회전 이미지 생성
+            img_rz = pygame.transform.rotozoom(img_weapon, -90 - msl_a[i], 1.0)
+            
             #탄환 이미지 그리기
             scrn.blit(img_rz, [msl_x[i] - img_rz.get_width() / 2, msl_y[i] - img_rz.get_height() / 2]) 
             if msl_y[i] < 0 or msl_x[i] < 0 or msl_x[i] > 960: #탄환 화면 밖으로 나가면
