@@ -116,11 +116,11 @@ key_spc = (key_spc + 1) * key[K_SPACE] #스페이스 키를 누르는 동안 변
 if key_spc % 5 == 1: #스페이스 누른 후, 5프레임마다 탄환 발사(탄환 딜레이)
     set_missile() #탄환 발사
 ```
-6. 탄막 아이디어
-픽셀 수 * math.cos(각도)가 x축 방향의 좌표 변화
-msl_x[i] = msl_x[i] + 36 * math.cos(math.radians(msl_a[i])) 
-픽셀 수 * math.sin(각도)가 y축 방향의 좌표 변화
-msl_y[i] = msl_y[i] + 36 * math.sin(math.radians(msl_a[i]))
+6. 탄막 아이디어  
+픽셀 수 * math.cos(각도)가 x축 방향의 좌표 변화  
+msl_x[i] = msl_x[i] + 36 * math.cos(math.radians(msl_a[i]))   
+픽셀 수 * math.sin(각도)가 y축 방향의 좌표 변화  
+msl_y[i] = msl_y[i] + 36 * math.sin(math.radians(msl_a[i]))  
 ```py
 key_z = 0 #z키룰 늘렀을 때 사용할 변수
 msl_a = [0] * MISSILE_MAX #탄환이 날라가는 각도 리스트
