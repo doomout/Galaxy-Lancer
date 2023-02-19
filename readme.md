@@ -145,7 +145,7 @@ def move_missile(scrn):  # 탄환 이동
             msl_x[i] = msl_x[i] + 36 * math.cos(math.radians(msl_a[i])) #x좌표 계산
             msl_y[i] = msl_y[i] + 36 * math.sin(math.radians(msl_a[i])) #y좌표 계산
             
-            #날아가는 각도의 회전 이미지 생성
+            #날아가는 각도의 회전 이미지 생성(원래 이미지, 회전각, 확대비율)
             img_rz = pygame.transform.rotozoom(img_weapon, -90 - msl_a[i], 1.0)
             
             #탄환 이미지 그리기
