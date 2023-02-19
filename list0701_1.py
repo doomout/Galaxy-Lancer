@@ -1,6 +1,7 @@
 import pygame
 import sys
 import math
+import random
 from pygame.locals import *
 
 # 이미지 로딩
@@ -12,6 +13,10 @@ img_sship = [
     pygame.image.load("image_gl/starship_burner.png") #불꽃
 ]
 img_weapon = pygame.image.load("image_gl/bullet.png") #무기 이미지
+img_enemy = [
+    pygame.image.load("image_gl/enemy0.png"),
+    pygame.image.load("image_gl/enemy1.png")
+]
 
 tmr = 0
 bg_y = 0
@@ -28,6 +33,21 @@ msl_f = [False] * MISSILE_MAX #탄환 발사 중인지 체크 리스트
 msl_x = [0] * MISSILE_MAX #탄환의 x좌표 리스트
 msl_y = [0] * MISSILE_MAX #탄환의 y좌표 리스트
 msl_a = [0] * MISSILE_MAX #탄환이 날라가는 각도 리스트
+
+ENEMY_MAX = 100 #적 최대 수
+emy_no = 0 #적 등장시 사용할 리스트 인덱스 변수
+emy_f = [False] * ENEMY_MAX #적 등장 여부 관리 플래그 리스트
+emy_x = [0] * ENEMY_MAX #적의 x좌표 리스트
+emy_y = [0] * ENEMY_MAX #적의 y좌표 리스트
+emy_a = [0] * ENEMY_MAX #적의 비행각도 리스트
+emy_type = [0] * ENEMY_MAX #적의 종류 리스트
+emy_speed = [0] * ENEMY_MAX #적 속도 리스트
+
+#적이 나타나고 사라지는 좌표
+LINE_T = -80 #위
+LINE_B = 800 #아래
+LINE_L = -80 #좌 
+LINE_R = 1040 #우
 
 
 def move_starship(scrn, key):  # 플레이어 기체 이동
@@ -87,6 +107,43 @@ def move_missile(scrn):  # 탄환 이동
             scrn.blit(img_rz, [msl_x[i] - img_rz.get_width() / 2, msl_y[i] - img_rz.get_height() / 2]) #탄환 이미지 그리기
             if msl_y[i] < 0 or msl_x[i] < 0 or msl_x[i] > 960: #탄환 화면 밖으로 나가면
                 msl_f[i] = False #탄환삭제
+
+def bring_enemy():  # 적 기체 등장
+    if tmr % 30 == 0:
+        set_enemy(random.randint(20, 940), LINE_T, 90, 1, 6)
+
+
+def set_enemy(x, y, a, ty, sp):  # 적 기체 설정
+    global emy_no
+    while True:
+        if emy_f[emy_no] == False:
+            emy_f[emy_no] = True
+            emy_x[emy_no] = x
+            emy_y[emy_no] = y
+            emy_a[emy_no] = a
+            emy_type[emy_no] = ty
+            emy_speed[emy_no] = sp
+            break
+        emy_no = (emy_no + 1) % ENEMY_MAX
+
+
+def move_enemy(scrn):  # 적 기체 이동
+    for i in range(ENEMY_MAX):
+        if emy_f[i] == True:
+            ang = -90 - emy_a[i]
+            png = emy_type[i]
+            emy_x[i] = emy_x[i] + emy_speed[i] * math.cos(math.radians(emy_a[i]))
+            emy_y[i] = emy_y[i] + emy_speed[i] * math.sin(math.radians(emy_a[i]))
+            if emy_type[i] == 1 and emy_y[i] > 360:
+                set_enemy(emy_x[i], emy_y[i], 90, 0, 8)
+                emy_a[i] = -45
+                emy_speed[i] = 16
+            if emy_x[i] < LINE_L or LINE_R < emy_x[i] or emy_y[i] < LINE_T or LINE_B < emy_y[i]:
+                emy_f[i] = False
+            img_rz = pygame.transform.rotozoom(img_enemy[png], ang, 1.0)
+            scrn.blit(img_rz, [emy_x[i] - img_rz.get_width() / 2, emy_y[i] - img_rz.get_height() / 2])
+
+
             
 def main():  # 메인 루프
     global tmr, bg_y
@@ -116,6 +173,8 @@ def main():  # 메인 루프
         key = pygame.key.get_pressed()
         move_starship(screen, key) #기체 이동 함수
         move_missile(screen) #탄환 발사 함수
+        bring_enemy()
+        move_enemy(screen)
 
         pygame.display.update()
         clock.tick(30)
