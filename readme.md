@@ -5,16 +5,10 @@ Pygame 설치시 주의점
 -현재 pygame는 python 3.11 버전을 지원하지 않기에 pre-release 버전을 설치해야 한다.  
 -명령어 : pip3 install pygame --pre  
 
-게임 규칙  
-1. 방향키로 기체를 움직인다.  
-2. 스페이스 키로 탄환을 발사한다.  
-3. z키로 탄막을 펼친다. 일정량의 실드를 사용한다.  
-
-파이썬 문법
+게임 핵심 함수들
 1. 배경 이미지 움직이는 함수
 ```py
 global bg_y
-
 pygame.init()
 pygame.display.set_caption("Galaxy Lancer")
 screen = pygame.display.set_mode((960, 720))
@@ -30,37 +24,8 @@ while True:
 ```
 2. 튜플을 사용한 키보드 받기 함수(튜플=값을 변경할 수 없는 리스트)
 ```py
-#배경 스크롤
-bg_y = (bg_y + 16) % 720 
-screen.blit(img_galaxy, [0, bg_y - 720])
-screen.blit(img_galaxy, [0, bg_y])
 #사용자 키 입력 받기
 key = pygame.key.get_pressed() #튜플은()로 선언, 리스트는 []로 선언
-move_starship(screen, key)
-
-def move_starship(scrn, key):  # 플레이어 기체 이동
-    global ss_x, ss_y, ss_d
-    ss_d = 0 #기본 기체 이미지
-    if key[K_UP] == 1:
-        ss_y = ss_y - 20
-        if ss_y < 80:
-            ss_y = 80
-    if key[K_DOWN] == 1:
-        ss_y = ss_y + 20
-        if ss_y > 640:
-            ss_y = 640
-    if key[K_LEFT] == 1:
-        ss_d = 1 #왼쪽 이미지
-        ss_x = ss_x - 20
-        if ss_x < 40:
-            ss_x = 40
-    if key[K_RIGHT] == 1:
-        ss_d = 2 #오른쪽 이미지
-        ss_x = ss_x + 20
-        if ss_x > 920:
-            ss_x = 920
-    scrn.blit(img_sship[3], [ss_x - 8, ss_y + 40 + (tmr % 3) * 2]) #엔진 불꽃 그리기
-    scrn.blit(img_sship[ss_d], [ss_x - 37, ss_y - 48]) #기체 그리기
 ```
 3. 탄환 발사 함수(1발씩일 때)
 ```py
@@ -108,7 +73,7 @@ def move_missile(scrn):  # 탄환 이동
             if msl_y[i] < 0: #탄환 화면 밖으로 나가면
                 msl_f[i] = False #탄환삭제
 ```
-5. 탄환 발사에 딜레이 주는 아이디어
+5. 탄환 발사 딜레이
 ```py
 key_spc = 0 #스페이스를 눌렀을 때 사용할 변수
 
@@ -153,7 +118,7 @@ def move_missile(scrn):  # 탄환 이동
             if msl_y[i] < 0 or msl_x[i] < 0 or msl_x[i] > 960: #탄환 화면 밖으로 나가면
                 msl_f[i] = False #탄환삭제
 ```
-7.적 관련 함수
+7.적 이동, 적 탄환 함수
 ```py
 def bring_enemy():  # 적 기체 등장
     if tmr % 30 == 0:
@@ -188,4 +153,43 @@ def move_enemy(scrn):  # 적 기체 이동
                 emy_f[i] = False #적 삭제
             img_rz = pygame.transform.rotozoom(img_enemy[png], ang, 1.0) #적 회전 이미지 생성
             scrn.blit(img_rz, [emy_x[i] - img_rz.get_width() / 2, emy_y[i] - img_rz.get_height() / 2])
+```
+8. 탄환과 적의 충돌 
+```py
+def get_dis(x1, y1, x2, y2):  # 두 점 사이 거리 계산
+    return ((x1 - x2) * (x1 - x2) + (y1 - y2) * (y1 - y2))
+
+# 플레이어 기체 발사 탄환과 히트 체크
+if emy_type[i] != EMY_BULLET:  #emy_type: 0은 적 탄환, 1은 적 기체(즉, 기체만 체크)
+    w = img_enemy[emy_type[i]].get_width() #적 이미지 가로(픽셀수)
+    h = img_enemy[emy_type[i]].get_height() #적 기체 이미지 세로(픽셀수)
+    r = int((w + h) / 4) + 12 #히트 체크에 사용할 거리 계산(탄환의 반지름이 12픽셀)
+    for n in range(MISSILE_MAX):
+        #기체 탄환과 접촉 여부 판단
+        if msl_f[n] == True and get_dis(emy_x[i], emy_y[i], msl_x[n], msl_y[n]) < r * r: 
+            msl_f[n] = False #탄환 삭제
+            emy_f[i] = False #적 기체 삭제
+```
+9. 폭발 함수
+```py
+EFFECT_MAX = 100 #폭발 연출 최대 수 정의
+eff_no = 0 #폭발 연출시 사용할 리스트 인덱스 변수
+eff_p = [0] * EFFECT_MAX #폭발 이미지 번호 리스트
+eff_x = [0] * EFFECT_MAX #폭발 x좌표 리스트
+eff_y = [0] * EFFECT_MAX #폭발 y좌표 리스트
+
+def set_effect(x, y):  # 폭발 설정
+    global eff_no
+    eff_p[eff_no] = 1
+    eff_x[eff_no] = x
+    eff_y[eff_no] = y
+    eff_no = (eff_no + 1) % EFFECT_MAX
+
+def draw_effect(scrn):  # 폭발 연출
+    for i in range(EFFECT_MAX):
+        if eff_p[i] > 0:
+            scrn.blit(img_explode[eff_p[i]], [eff_x[i] - 48, eff_y[i] - 48]) #폭발 연출 표시
+            eff_p[i] = eff_p[i] + 1 #폭발 이미지 인덱스 1씩 증가
+            if eff_p[i] == 6: #6번 이미지까지 갔으면~
+                eff_p[i] = 0 #0번 이미지(없음)
 ```
