@@ -112,38 +112,34 @@ def bring_enemy():  # 적 기체 등장
     if tmr % 30 == 0:
         set_enemy(random.randint(20, 940), LINE_T, 90, 1, 6)
 
-
 def set_enemy(x, y, a, ty, sp):  # 적 기체 설정
     global emy_no
     while True:
-        if emy_f[emy_no] == False:
-            emy_f[emy_no] = True
-            emy_x[emy_no] = x
-            emy_y[emy_no] = y
-            emy_a[emy_no] = a
-            emy_type[emy_no] = ty
-            emy_speed[emy_no] = sp
+        if emy_f[emy_no] == False: #리스트가 비어있다면~
+            emy_f[emy_no] = True #플레그 설정
+            emy_x[emy_no] = x #x좌표
+            emy_y[emy_no] = y #y좌표
+            emy_a[emy_no] = a #각도 대입
+            emy_type[emy_no] = ty #적 종류
+            emy_speed[emy_no] = sp #적 속도
             break
-        emy_no = (emy_no + 1) % ENEMY_MAX
-
+        emy_no = (emy_no + 1) % ENEMY_MAX #다음 설정을 위한 번호 계산
 
 def move_enemy(scrn):  # 적 기체 이동
     for i in range(ENEMY_MAX):
-        if emy_f[i] == True:
-            ang = -90 - emy_a[i]
-            png = emy_type[i]
-            emy_x[i] = emy_x[i] + emy_speed[i] * math.cos(math.radians(emy_a[i]))
-            emy_y[i] = emy_y[i] + emy_speed[i] * math.sin(math.radians(emy_a[i]))
-            if emy_type[i] == 1 and emy_y[i] > 360:
-                set_enemy(emy_x[i], emy_y[i], 90, 0, 8)
-                emy_a[i] = -45
-                emy_speed[i] = 16
-            if emy_x[i] < LINE_L or LINE_R < emy_x[i] or emy_y[i] < LINE_T or LINE_B < emy_y[i]:
-                emy_f[i] = False
-            img_rz = pygame.transform.rotozoom(img_enemy[png], ang, 1.0)
-            scrn.blit(img_rz, [emy_x[i] - img_rz.get_width() / 2, emy_y[i] - img_rz.get_height() / 2])
-
-
+        if emy_f[i] == True: #적이 존재하는가?
+            ang = -90 - emy_a[i] #회전 각도 대입
+            png = emy_type[i] #이미지 번호 대입
+            emy_x[i] = emy_x[i] + emy_speed[i] * math.cos(math.radians(emy_a[i])) #x좌표 변화
+            emy_y[i] = emy_y[i] + emy_speed[i] * math.sin(math.radians(emy_a[i])) #y좌표 변화
+            if emy_type[i] == 1 and emy_y[i] > 360: #적의 y좌표가 360도를 넘었다면
+                set_enemy(emy_x[i], emy_y[i], 90, 0, 8) #탄환 발사
+                emy_a[i] = -45 #방향 변경
+                emy_speed[i] = 16 #속도 변경
+            if emy_x[i] < LINE_L or LINE_R < emy_x[i] or emy_y[i] < LINE_T or LINE_B < emy_y[i]: #화면 상하좌우에서 벗어나면
+                emy_f[i] = False #적 삭제
+            img_rz = pygame.transform.rotozoom(img_enemy[png], ang, 1.0) #적 회전 이미지 생성
+            scrn.blit(img_rz, [emy_x[i] - img_rz.get_width() / 2, emy_y[i] - img_rz.get_height() / 2]) #적 이미지 그리기
             
 def main():  # 메인 루프
     global tmr, bg_y
