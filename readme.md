@@ -221,3 +221,23 @@ screen.blit(img_shield, [40, 680]) #쉴드 화면 그리기
 #쉴드가 감소할 때 마다 사각형으로 덮어서 표현
 pygame.draw.rect(screen, (64, 32, 32), [40 + ss_shield * 4, 680, (100 - ss_shield) * 4, 12]) 
 ```
+12. 문자열 표시 함수
+```py
+def draw_text(scrn, txt, x, y, siz, col):  # 문자 표시
+    fnt = pygame.font.Font(None, siz)
+    sur = fnt.render(txt, True, col)
+    x = x - sur.get_width() / 2
+    y = y - sur.get_height() / 2
+    scrn.blit(sur, [x, y])
+```
+13. 인덱스 값과 처리  
+0 : 타이틀 화면  
+- 스페이스 키를 누르면 각 변수를 초기화 하고 idx에 1 대입  
+1 : 게임 플레이 중 화면  
+- 플레이어 기체 처리, 플레이어 탄환처리, 적 기체 처리 수행  
+- 플레이어 기체 처리 중 쉴드가 없어지면 idx에 2 대입  
+- 시작 후 약 1분(30 x 60프레임) 경과후 idx에 3 대입  
+2 : 게임 오버 화면  
+- 일정 시간 경과 후, idx에 0 대입  
+3 : 게임 클리어 화면  
+- 일정 시간 경과 후, idx에 0 대입  
