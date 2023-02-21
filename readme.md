@@ -193,3 +193,31 @@ def draw_effect(scrn):  # 폭발 연출
             if eff_p[i] == 6: #6번 이미지까지 갔으면~
                 eff_p[i] = 0 #0번 이미지(없음)
 ```
+10. 플레이어와 적 충돌 했을 때 쉴드 감소, 2초 동안 무적
+```py
+if ss_muteki % 2 == 0: ##0 > 1 > 0 > 1 과 같이 교대로 반복되어 0이 되면 무적
+        scrn.blit(img_sship[3], [ss_x - 8, ss_y + 40 + (tmr % 3) * 2]) #엔진 불꽃 그리기
+        scrn.blit(img_sship[ss_d], [ss_x - 37, ss_y - 48]) #기체 그리기     
+if ss_muteki > 0: #무적 상태라면
+    ss_muteki = ss_muteki - 1 
+    return #함수를 벗어남(히트 체크 미수행)
+for i in range(ENEMY_MAX):  # 적 기체와 히트 체크
+    if emy_f[i] == True: #적 기체가 존재하면
+        w = img_enemy[emy_type[i]].get_width()
+        h = img_enemy[emy_type[i]].get_height()
+        r = int((w + h) / 4 + (74 + 96) / 4)
+        if get_dis(emy_x[i], emy_y[i], ss_x, ss_y) < r * r: #적과 충돌하면.
+            set_effect(ss_x, ss_y) #폭발 연출
+            ss_shield = ss_shield - 10 #쉴드 10 감소
+            if ss_shield <= 0: #쉴드가 0이하가 되면
+                ss_shield = 0 #0으로 설정
+            if ss_muteki == 0: #무적 상태가 아니라면
+                ss_muteki = 60 #무적 상태로 설정
+            emy_f[i] = False #적 삭제
+```
+11. 쉴드 화면 처리
+```py
+screen.blit(img_shield, [40, 680]) #쉴드 화면 그리기
+#쉴드가 감소할 때 마다 사각형으로 덮어서 표현
+pygame.draw.rect(screen, (64, 32, 32), [40 + ss_shield * 4, 680, (100 - ss_shield) * 4, 12]) 
+```

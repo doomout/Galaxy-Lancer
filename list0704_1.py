@@ -94,14 +94,14 @@ def move_starship(scrn, key):  # 플레이어 기체 이동
     key_spc = (key_spc + 1) * key[K_SPACE] #스페이스 키를 누르는 동안 변수 값 증가
     if key_spc % 5 == 1: #스페이스 누른 후, 5프레임마다 탄환 발사(탄환 딜레이)
         set_missile(0) #탄환 발사
-        ss_shield = ss_shield - 10 #쉴드량 10 감소
+        
     key_z = (key_z + 1) * key[K_z] #z키를 누르는 동안 변수 값 증가
     if key_z == 1 and ss_shield > 10: #한번 눌렀을 때 실드량이 10보다 크다면~
         set_missile(10) #탄막 치기
-    if ss_muteki % 2 == 0: #무적 상태에서 깜박이기 위한 if문
+        ss_shield = ss_shield - 10 #쉴드량 10 감소
+    if ss_muteki % 2 == 0: #0 > 1 > 0 > 1 과 같이 교대로 반복되어 0이 되면 무적
         scrn.blit(img_sship[3], [ss_x - 8, ss_y + 40 + (tmr % 3) * 2]) #엔진 불꽃 그리기
-        scrn.blit(img_sship[ss_d], [ss_x - 37, ss_y - 48]) #기체 그리기
-        
+        scrn.blit(img_sship[ss_d], [ss_x - 37, ss_y - 48]) #기체 그리기     
     if ss_muteki > 0: #무적 상태라면
         ss_muteki = ss_muteki - 1 
         return #함수를 벗어남(히트 체크 미수행)
@@ -116,7 +116,7 @@ def move_starship(scrn, key):  # 플레이어 기체 이동
                 if ss_shield <= 0: #쉴드가 0이하가 되면
                     ss_shield = 0 #0으로 설정
                 if ss_muteki == 0: #무적 상태가 아니라면
-                    ss_muteki = 60 #무적 상태로 설정
+                    ss_muteki = 60 #60프레임으로 설정
                 emy_f[i] = False #적 삭제
 
 def set_missile(typ):  # 플레이어 기체 발사 탄환 설정
