@@ -231,10 +231,11 @@ def draw_text(scrn, txt, x, y, siz, col):  # 문자 표시
     scrn.blit(sur, [x, y])
 ```
 13. Pygame 사운드 명령어(Pygame 사운드 파일은 ogg 형식이 mp3파일보다 재생시 안전하다.)   
-(1) BGM 명령어
+(1) BGM 명령어  
 - 파일로딩 : pygame.mixer.music.load(파일명)
 - 재생 : pygame.mixer.music.play(인수) #-1:반복재생, 0:1회 재생
 - 정지 : pygame.mixer.music.stop()  
+
 (2) SE(효과음) 명령어  
 - 파일로딩 : 변수명 = pygame.mixer.Sound(파일명)
 - 재생 : 변수명.play()
