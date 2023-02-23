@@ -229,9 +229,8 @@ def draw_text(scrn, txt, x, y, siz, col):  # 문자 표시
     x = x - sur.get_width() / 2
     y = y - sur.get_height() / 2
     scrn.blit(sur, [x, y])
-```
-13. Pygame 사운드 명령어(Pygame 사운드 파일은 ogg 형식이 mp3파일보다 재생시 안전하다.)  
- 
+``` 
+13. Pygame 사운드 명령어(Pygame 사운드 파일은 ogg 형식이 mp3파일보다 재생시 안전하다.)   
 (1) BGM 명령어  
 - 파일로딩 : pygame.mixer.music.load(파일명)
 - 재생 : pygame.mixer.music.play(인수) #-1:반복재생, 0:1회 재생
