@@ -221,13 +221,13 @@ def bring_enemy():  # 적 기체 등장
     sec = tmr / 30 #게임 진행 시간을 sec에 대입
     if tmr % 30 == 0: 
         if 0 < sec and sec < 15: 
-            set_enemy(random.randint(20, 940), LINE_T, 90, EMY_ZAKO, 8, 1)  # 적 1
+            set_enemy(random.randint(20, 940), LINE_T, 90, EMY_ZAKO, 8, 1)  #적1
         if 15 < sec and sec < 30:
-            set_enemy(random.randint(20, 940), LINE_T, 90, EMY_ZAKO + 1, 12, 1)  # 적 2
+            set_enemy(random.randint(20, 940), LINE_T, 90, EMY_ZAKO + 1, 12, 1)  #적2
         if 30 < sec and sec < 45:
-            set_enemy(random.randint(100, 860), LINE_T, random.randint(60, 120), EMY_ZAKO + 2, 6, 3)  # 적 3
+            set_enemy(random.randint(100, 860), LINE_T, random.randint(60, 120), EMY_ZAKO + 2, 6, 3) #적3
         if 45 < sec and sec < 60:
-            set_enemy(random.randint(100, 860), LINE_T, 90, EMY_ZAKO + 3, 12, 2)  # 적 4
+            set_enemy(random.randint(100, 860), LINE_T, 90, EMY_ZAKO + 3, 12, 2)  #적4
 ```
 14. 적 설정
 ```py
