@@ -128,7 +128,94 @@ def move_missile(scrn):  # 탄환 이동
             if msl_y[i] < 0 or msl_x[i] < 0 or msl_x[i] > 960: #탄환 화면 밖으로 나가면
                 msl_f[i] = False #탄환삭제
 ```
-7.적 추가, 적 설정, 적 이동
+7. 탄환과 적의 충돌 
+```py
+def get_dis(x1, y1, x2, y2):  # 두 점 사이 거리 계산
+    return ((x1 - x2) * (x1 - x2) + (y1 - y2) * (y1 - y2))
+
+# 플레이어 기체 발사 탄환과 히트 체크
+if emy_type[i] != EMY_BULLET:  #emy_type: 0은 적 탄환, 1은 적 기체(즉, 기체만 체크)
+    w = img_enemy[emy_type[i]].get_width() #적 이미지 가로(픽셀수)
+    h = img_enemy[emy_type[i]].get_height() #적 기체 이미지 세로(픽셀수)
+    r = int((w + h) / 4) + 12 #히트 체크에 사용할 거리 계산(탄환의 반지름이 12픽셀)
+    for n in range(MISSILE_MAX):
+        #기체 탄환과 접촉 여부 판단
+        if msl_f[n] == True and get_dis(emy_x[i], emy_y[i], msl_x[n], msl_y[n]) < r * r: 
+            msl_f[n] = False #탄환 삭제
+            emy_f[i] = False #적 기체 삭제
+```
+8. 폭발 함수
+```py
+EFFECT_MAX = 100 #폭발 연출 최대 수 정의
+eff_no = 0 #폭발 연출시 사용할 리스트 인덱스 변수
+eff_p = [0] * EFFECT_MAX #폭발 이미지 번호 리스트
+eff_x = [0] * EFFECT_MAX #폭발 x좌표 리스트
+eff_y = [0] * EFFECT_MAX #폭발 y좌표 리스트
+
+def set_effect(x, y):  # 폭발 설정
+    global eff_no
+    eff_p[eff_no] = 1
+    eff_x[eff_no] = x
+    eff_y[eff_no] = y
+    eff_no = (eff_no + 1) % EFFECT_MAX
+
+def draw_effect(scrn):  # 폭발 연출
+    for i in range(EFFECT_MAX):
+        if eff_p[i] > 0:
+            scrn.blit(img_explode[eff_p[i]], [eff_x[i] - 48, eff_y[i] - 48]) #폭발 연출 표시
+            eff_p[i] = eff_p[i] + 1 #폭발 이미지 인덱스 1씩 증가
+            if eff_p[i] == 6: #6번 이미지까지 갔으면~
+                eff_p[i] = 0 #0번 이미지(없음)
+```
+9. 플레이어와 적 충돌 했을 때 쉴드 감소, 2초 동안 무적
+```py
+if ss_muteki % 2 == 0: ##0 > 1 > 0 > 1 과 같이 교대로 반복되어 0이 되면 무적
+        scrn.blit(img_sship[3], [ss_x - 8, ss_y + 40 + (tmr % 3) * 2]) #엔진 불꽃 그리기
+        scrn.blit(img_sship[ss_d], [ss_x - 37, ss_y - 48]) #기체 그리기     
+if ss_muteki > 0: #무적 상태라면
+    ss_muteki = ss_muteki - 1 
+    return #함수를 벗어남(히트 체크 미수행)
+for i in range(ENEMY_MAX):  # 적 기체와 히트 체크
+    if emy_f[i] == True: #적 기체가 존재하면
+        w = img_enemy[emy_type[i]].get_width()
+        h = img_enemy[emy_type[i]].get_height()
+        r = int((w + h) / 4 + (74 + 96) / 4)
+        if get_dis(emy_x[i], emy_y[i], ss_x, ss_y) < r * r: #적과 충돌하면.
+            set_effect(ss_x, ss_y) #폭발 연출
+            ss_shield = ss_shield - 10 #쉴드 10 감소
+            if ss_shield <= 0: #쉴드가 0이하가 되면
+                ss_shield = 0 #0으로 설정
+            if ss_muteki == 0: #무적 상태가 아니라면
+                ss_muteki = 60 #무적 상태로 설정
+            emy_f[i] = False #적 삭제
+```
+10. 쉴드 화면 처리
+```py
+screen.blit(img_shield, [40, 680]) #쉴드 화면 그리기
+#쉴드가 감소할 때 마다 사각형으로 덮어서 표현
+pygame.draw.rect(screen, (64, 32, 32), [40 + ss_shield * 4, 680, (100 - ss_shield) * 4, 12]) 
+```
+11. 문자열 표시 함수
+```py
+def draw_text(scrn, txt, x, y, siz, col):  # 문자 표시
+    fnt = pygame.font.Font(None, siz)
+    sur = fnt.render(txt, True, col)
+    x = x - sur.get_width() / 2
+    y = y - sur.get_height() / 2
+    scrn.blit(sur, [x, y])
+``` 
+12. Pygame 사운드 명령어(Pygame 사운드 파일은 ogg 형식이 mp3파일보다 재생시 안전하다.)   
+
+BGM 명령어  
+- 파일로딩 : pygame.mixer.music.load(파일명)
+- 재생 : pygame.mixer.music.play(인수) #-1:반복재생, 0:1회 재생
+- 정지 : pygame.mixer.music.stop()  
+
+SE(효과음) 명령어  
+- 파일로딩 : 변수명 = pygame.mixer.Sound(파일명)
+- 재생 : 변수명.play()
+
+13. 적 추가
 ```py
 def bring_enemy():  # 적 기체 등장
     sec = tmr / 30 #게임 진행 시간을 sec에 대입
@@ -141,7 +228,9 @@ def bring_enemy():  # 적 기체 등장
             set_enemy(random.randint(100, 860), LINE_T, random.randint(60, 120), EMY_ZAKO + 2, 6, 3)  # 적 3
         if 45 < sec and sec < 60:
             set_enemy(random.randint(100, 860), LINE_T, 90, EMY_ZAKO + 3, 12, 2)  # 적 4
-
+```
+14. 적 설정
+```py
 def set_enemy(x, y, a, ty, sp, sh):  # 적 기체 설정
     global emy_no
     while True:
@@ -156,7 +245,9 @@ def set_enemy(x, y, a, ty, sp, sh):  # 적 기체 설정
             emy_count[emy_no] = 0 #움직임을 관리하는 리스트에 0 대입하여 반복 나가기
             break
         emy_no = (emy_no + 1) % ENEMY_MAX #다음 설정을 위한 번호 계산
-
+```
+15. 적 이동
+```py
 def move_enemy(scrn):  # 적 기체 이동
     global idx, tmr, score, ss_shield
     for i in range(ENEMY_MAX):
@@ -194,89 +285,3 @@ def move_enemy(scrn):  # 적 기체 이동
             img_rz = pygame.transform.rotozoom(img_enemy[png], ang, 1.0) #적 회전 시킨 이미지 생성
             scrn.blit(img_rz, [emy_x[i] - img_rz.get_width() / 2, emy_y[i] - img_rz.get_height() / 2])
 ```
-8. 탄환과 적의 충돌 
-```py
-def get_dis(x1, y1, x2, y2):  # 두 점 사이 거리 계산
-    return ((x1 - x2) * (x1 - x2) + (y1 - y2) * (y1 - y2))
-
-# 플레이어 기체 발사 탄환과 히트 체크
-if emy_type[i] != EMY_BULLET:  #emy_type: 0은 적 탄환, 1은 적 기체(즉, 기체만 체크)
-    w = img_enemy[emy_type[i]].get_width() #적 이미지 가로(픽셀수)
-    h = img_enemy[emy_type[i]].get_height() #적 기체 이미지 세로(픽셀수)
-    r = int((w + h) / 4) + 12 #히트 체크에 사용할 거리 계산(탄환의 반지름이 12픽셀)
-    for n in range(MISSILE_MAX):
-        #기체 탄환과 접촉 여부 판단
-        if msl_f[n] == True and get_dis(emy_x[i], emy_y[i], msl_x[n], msl_y[n]) < r * r: 
-            msl_f[n] = False #탄환 삭제
-            emy_f[i] = False #적 기체 삭제
-```
-9. 폭발 함수
-```py
-EFFECT_MAX = 100 #폭발 연출 최대 수 정의
-eff_no = 0 #폭발 연출시 사용할 리스트 인덱스 변수
-eff_p = [0] * EFFECT_MAX #폭발 이미지 번호 리스트
-eff_x = [0] * EFFECT_MAX #폭발 x좌표 리스트
-eff_y = [0] * EFFECT_MAX #폭발 y좌표 리스트
-
-def set_effect(x, y):  # 폭발 설정
-    global eff_no
-    eff_p[eff_no] = 1
-    eff_x[eff_no] = x
-    eff_y[eff_no] = y
-    eff_no = (eff_no + 1) % EFFECT_MAX
-
-def draw_effect(scrn):  # 폭발 연출
-    for i in range(EFFECT_MAX):
-        if eff_p[i] > 0:
-            scrn.blit(img_explode[eff_p[i]], [eff_x[i] - 48, eff_y[i] - 48]) #폭발 연출 표시
-            eff_p[i] = eff_p[i] + 1 #폭발 이미지 인덱스 1씩 증가
-            if eff_p[i] == 6: #6번 이미지까지 갔으면~
-                eff_p[i] = 0 #0번 이미지(없음)
-```
-10. 플레이어와 적 충돌 했을 때 쉴드 감소, 2초 동안 무적
-```py
-if ss_muteki % 2 == 0: ##0 > 1 > 0 > 1 과 같이 교대로 반복되어 0이 되면 무적
-        scrn.blit(img_sship[3], [ss_x - 8, ss_y + 40 + (tmr % 3) * 2]) #엔진 불꽃 그리기
-        scrn.blit(img_sship[ss_d], [ss_x - 37, ss_y - 48]) #기체 그리기     
-if ss_muteki > 0: #무적 상태라면
-    ss_muteki = ss_muteki - 1 
-    return #함수를 벗어남(히트 체크 미수행)
-for i in range(ENEMY_MAX):  # 적 기체와 히트 체크
-    if emy_f[i] == True: #적 기체가 존재하면
-        w = img_enemy[emy_type[i]].get_width()
-        h = img_enemy[emy_type[i]].get_height()
-        r = int((w + h) / 4 + (74 + 96) / 4)
-        if get_dis(emy_x[i], emy_y[i], ss_x, ss_y) < r * r: #적과 충돌하면.
-            set_effect(ss_x, ss_y) #폭발 연출
-            ss_shield = ss_shield - 10 #쉴드 10 감소
-            if ss_shield <= 0: #쉴드가 0이하가 되면
-                ss_shield = 0 #0으로 설정
-            if ss_muteki == 0: #무적 상태가 아니라면
-                ss_muteki = 60 #무적 상태로 설정
-            emy_f[i] = False #적 삭제
-```
-11. 쉴드 화면 처리
-```py
-screen.blit(img_shield, [40, 680]) #쉴드 화면 그리기
-#쉴드가 감소할 때 마다 사각형으로 덮어서 표현
-pygame.draw.rect(screen, (64, 32, 32), [40 + ss_shield * 4, 680, (100 - ss_shield) * 4, 12]) 
-```
-12. 문자열 표시 함수
-```py
-def draw_text(scrn, txt, x, y, siz, col):  # 문자 표시
-    fnt = pygame.font.Font(None, siz)
-    sur = fnt.render(txt, True, col)
-    x = x - sur.get_width() / 2
-    y = y - sur.get_height() / 2
-    scrn.blit(sur, [x, y])
-``` 
-13. Pygame 사운드 명령어(Pygame 사운드 파일은 ogg 형식이 mp3파일보다 재생시 안전하다.)   
-
-BGM 명령어  
-- 파일로딩 : pygame.mixer.music.load(파일명)
-- 재생 : pygame.mixer.music.play(인수) #-1:반복재생, 0:1회 재생
-- 정지 : pygame.mixer.music.stop()  
-
-SE(효과음) 명령어  
-- 파일로딩 : 변수명 = pygame.mixer.Sound(파일명)
-- 재생 : 변수명.play()
