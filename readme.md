@@ -5,6 +5,16 @@ Pygame 설치시 주의점
 -현재 pygame는 python 3.11 버전을 지원하지 않기에 pre-release 버전을 설치해야 한다.  
 -명령어 : pip3 install pygame --pre  
 
+게임 룰
+1. 방향키로 기체를 움직인다.  
+2. 스페이스 키로 탄환을 발사한다.  
+3. z키로 탄막을 펼친다. 일정량의 실드를 사용한다.  
+4. 적 종류와 특징
+- (1) 위에서 아래로 직진으로 이동
+- (2) (1)번 보다 빠르게 직진으로 이동
+- (3) 대각선 아래로 이동
+- (4) 아래로 이동하다 도중에 탄환 발사 하고 방향 변경
+
 게임 핵심 함수들
 1. 배경 이미지 움직이는 함수
 ```py
@@ -118,13 +128,21 @@ def move_missile(scrn):  # 탄환 이동
             if msl_y[i] < 0 or msl_x[i] < 0 or msl_x[i] > 960: #탄환 화면 밖으로 나가면
                 msl_f[i] = False #탄환삭제
 ```
-7.적 이동, 적 탄환 함수
+7.적 추가, 적 설정, 적 이동
 ```py
 def bring_enemy():  # 적 기체 등장
-    if tmr % 30 == 0:
-        set_enemy(random.randint(20, 940), LINE_T, 90, 1, 6)
+    sec = tmr / 30 #게임 진행 시간을 sec에 대입
+    if tmr % 30 == 0: 
+        if 0 < sec and sec < 15: 
+            set_enemy(random.randint(20, 940), LINE_T, 90, EMY_ZAKO, 8, 1)  # 적 1
+        if 15 < sec and sec < 30:
+            set_enemy(random.randint(20, 940), LINE_T, 90, EMY_ZAKO + 1, 12, 1)  # 적 2
+        if 30 < sec and sec < 45:
+            set_enemy(random.randint(100, 860), LINE_T, random.randint(60, 120), EMY_ZAKO + 2, 6, 3)  # 적 3
+        if 45 < sec and sec < 60:
+            set_enemy(random.randint(100, 860), LINE_T, 90, EMY_ZAKO + 3, 12, 2)  # 적 4
 
-def set_enemy(x, y, a, ty, sp):  # 적 기체 설정
+def set_enemy(x, y, a, ty, sp, sh):  # 적 기체 설정
     global emy_no
     while True:
         if emy_f[emy_no] == False: #리스트가 비어있다면~
@@ -134,24 +152,46 @@ def set_enemy(x, y, a, ty, sp):  # 적 기체 설정
             emy_a[emy_no] = a #각도 대입
             emy_type[emy_no] = ty #적 종류
             emy_speed[emy_no] = sp #적 속도
+            emy_shield[emy_no] = sh #적 실드량 
+            emy_count[emy_no] = 0 #움직임을 관리하는 리스트에 0 대입하여 반복 나가기
             break
         emy_no = (emy_no + 1) % ENEMY_MAX #다음 설정을 위한 번호 계산
 
 def move_enemy(scrn):  # 적 기체 이동
+    global idx, tmr, score, ss_shield
     for i in range(ENEMY_MAX):
-        if emy_f[i] == True: #적이 존재하는가?
-            ang = -90 - emy_a[i] #회전 각도 대입
-            png = emy_type[i] #이미지 번호 대입
-            emy_x[i] = emy_x[i] + emy_speed[i] * math.cos(math.radians(emy_a[i])) #x좌표 변화
-            emy_y[i] = emy_y[i] + emy_speed[i] * math.sin(math.radians(emy_a[i])) #y좌표 변화
-            if emy_type[i] == 1 and emy_y[i] > 360: #적의 y좌표가 360도를 넘었다면
-                set_enemy(emy_x[i], emy_y[i], 90, 0, 8) #탄환 발사
-                emy_a[i] = -45 #방향 변경
-                emy_speed[i] = 16 #속도 변경
-            #화면 상하좌우에서 벗어나면
-            if emy_x[i] < LINE_L or LINE_R < emy_x[i] or emy_y[i] < LINE_T or LINE_B < emy_y[i]: 
+        if emy_f[i] == True:
+            ang = -90 - emy_a[i]
+            png = emy_type[i]
+            emy_x[i] = emy_x[i] + emy_speed[i] * math.cos(math.radians(emy_a[i]))
+            emy_y[i] = emy_y[i] + emy_speed[i] * math.sin(math.radians(emy_a[i]))
+            if emy_type[i] == 4:  # 진행 방향을 변경하는 적
+                emy_count[i] = emy_count[i] + 1
+                ang = emy_count[i] * 10 #이미지 회전 각도 계산
+                if emy_y[i] > 240 and emy_a[i] == 90: #Y좌표가 240 보다 크면
+                    emy_a[i] = random.choice([50, 70, 110, 130]) #무작위로 방향 변경
+                    set_enemy(emy_x[i], emy_y[i], 90, EMY_BULLET, 6, 0) #탄환 발사
+            #화면 상하좌우에서 벗어났다면.
+            if emy_x[i] < LINE_L or LINE_R < emy_x[i] or emy_y[i] < LINE_T or LINE_B < emy_y[i]:
                 emy_f[i] = False #적 삭제
-            img_rz = pygame.transform.rotozoom(img_enemy[png], ang, 1.0) #적 회전 이미지 생성
+
+            if emy_type[i] != EMY_BULLET:  # 플레이어 기체 발사 탄환과 히트 체크
+                w = img_enemy[emy_type[i]].get_width() #적 이미지 폭
+                h = img_enemy[emy_type[i]].get_height() #적 이미지 높이
+                r = int((w + h) / 4) + 12 #히트 체크에 사용할 거리 계산
+                for n in range(MISSILE_MAX):
+                    #플레이어 기체 탄환가 접촉 여부
+                    if msl_f[n] == True and get_dis(emy_x[i], emy_y[i], msl_x[n], msl_y[n]) < r * r:
+                        msl_f[n] = False #탄환 삭제
+                        set_effect(emy_x[i], emy_y[i]) #폭발 이펙트
+                        emy_shield[i] = emy_shield[i] - 1 #적 기체 실드량 감소
+                        score = score + 100 #점수 증가
+                        if emy_shield[i] == 0: #적 기체를 격추 했다면
+                            emy_f[i] = False #적 삭제
+                            if ss_shield < 100: #플레이어 실드량이 100 미만이면
+                                ss_shield = ss_shield + 1 #실드 증가
+
+            img_rz = pygame.transform.rotozoom(img_enemy[png], ang, 1.0) #적 회전 시킨 이미지 생성
             scrn.blit(img_rz, [emy_x[i] - img_rz.get_width() / 2, emy_y[i] - img_rz.get_height() / 2])
 ```
 8. 탄환과 적의 충돌 
