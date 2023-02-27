@@ -4,6 +4,7 @@ import math
 import random
 import Image
 import Sound
+import Effect
 from pygame.locals import *
 
 idx = 0 #인덱스 변수
@@ -47,12 +48,6 @@ LINE_T = -80 #위
 LINE_B = 800 #아래
 LINE_L = -80 #좌 
 LINE_R = 1040 #우
-
-EFFECT_MAX = 100 #폭발 연출 최대 수 정의
-eff_no = 0 #폭발 연출시 사용할 리스트 인덱스 변수
-eff_p = [0] * EFFECT_MAX #폭발 이미지 번호 리스트
-eff_x = [0] * EFFECT_MAX #폭발 x좌표 리스트
-eff_y = [0] * EFFECT_MAX #폭발 y좌표 리스트
 
 def get_dis(x1, y1, x2, y2):  # 두 점 사이 거리 계산
     return ((x1 - x2) * (x1 - x2) + (y1 - y2) * (y1 - y2))
@@ -120,7 +115,7 @@ def move_starship(scrn, key):  # 플레이어 기체 이동
                 h = Image.img_enemy[emy_type[i]].get_height()
                 r = int((w + h) / 4 + (74 + 96) / 4)
                 if get_dis(emy_x[i], emy_y[i], ss_x, ss_y) < r * r: #적과 충돌하면.
-                    set_effect(ss_x, ss_y) #폭발 연출
+                    Effect.set_effect(ss_x, ss_y) #폭발 연출
                     ss_shield = ss_shield - 10 #쉴드 10 감소
                     if ss_shield <= 0: #쉴드가 0이하가 되면
                         ss_shield = 0 #0으로 설정
@@ -259,7 +254,7 @@ def move_enemy(scrn):  # 적 기체 이동
                     #플레이어 기체 탄환가 접촉 여부
                     if msl_f[n] == True and get_dis(emy_x[i], emy_y[i], msl_x[n], msl_y[n]) < r * r:
                         msl_f[n] = False #탄환 삭제
-                        set_effect(emy_x[i] + random.randint(-er, er), emy_y[i] + random.randint(-er, er))
+                        Effect.set_effect(emy_x[i] + random.randint(-er, er), emy_y[i] + random.randint(-er, er))
                         if emy_type[i] == EMY_BOSS:  # 보스 기체 깜빡임 처리
                             png = emy_type[i] + 1
                         emy_shield[i] = emy_shield[i] - 1 #적 기체 실드량 감소
@@ -275,26 +270,11 @@ def move_enemy(scrn):  # 적 기체 이동
                                 idx = 3
                                 tmr = 0
                                 for j in range(10):
-                                    set_effect(emy_x[i] + random.randint(-er, er), emy_y[i] + random.randint(-er, er))
+                                    Effect.set_effect(emy_x[i] + random.randint(-er, er), emy_y[i] + random.randint(-er, er))
                                 Sound.se_explosion.play() #사운드 출력
 
             img_rz = pygame.transform.rotozoom(Image.img_enemy[png], ang, 1.0) #적 회전 시킨 이미지 생성
             scrn.blit(img_rz, [emy_x[i] - img_rz.get_width() / 2, emy_y[i] - img_rz.get_height() / 2])
-
-def set_effect(x, y):  # 폭발 설정
-    global eff_no
-    eff_p[eff_no] = 1
-    eff_x[eff_no] = x
-    eff_y[eff_no] = y
-    eff_no = (eff_no + 1) % EFFECT_MAX
-
-def draw_effect(scrn):  # 폭발 연출
-    for i in range(EFFECT_MAX):
-        if eff_p[i] > 0:
-            scrn.blit(Image.img_explode[eff_p[i]], [eff_x[i] - 48, eff_y[i] - 48]) #폭발 연출 표시
-            eff_p[i] = eff_p[i] + 1 #폭발 이미지 인덱스 1씩 증가
-            if eff_p[i] == 6: #6번 이미지까지 갔으면~
-                eff_p[i] = 0 #0번 이미지(없음)
                      
 def main():  # 메인 루프
     global idx, tmr, score, new_record, bg_y, ss_x, ss_y, ss_d, ss_shield, ss_muteki
@@ -359,7 +339,7 @@ def main():  # 메인 루프
                 pygame.mixer.music.stop()
             if tmr <= 90:
                 if tmr % 5 == 0:
-                    set_effect(ss_x + random.randint(-60, 60), ss_y + random.randint(-60, 60))
+                    Effect.set_effect(ss_x + random.randint(-60, 60), ss_y + random.randint(-60, 60))
                 if tmr % 10 == 0:
                     Sound.se_damage.play()
             if tmr == 120:
@@ -393,7 +373,7 @@ def main():  # 메인 루프
                 idx = 0
                 tmr = 0    
                 
-        draw_effect(screen)  # 폭발 연출
+        Effect.draw_effect(screen)  # 폭발 연출
         draw_text(screen, "SCORE " + str(score), 200, 30, 50, Image.SILVER) #점수 표시
         draw_text(screen, "HISCORE " + str(hisco), 760, 30, 50, Image.CYAN) #최고 점수 표시
         if idx != 0:  # 실드 표시
