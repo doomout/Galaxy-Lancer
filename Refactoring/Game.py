@@ -3,13 +3,8 @@ import sys
 import math
 import random
 import Image
+import Sound
 from pygame.locals import *
-
-# SE 로딩 변수
-se_barrage = None  #탄막 발사시 사용
-se_damage = None #데미지 입을 때 사용
-se_explosion = None #보스 폭발시 사용
-se_shot = None #탄환 발사시 사용
 
 idx = 0 #인덱스 변수
 tmr = 0 #타이머 변수
@@ -83,7 +78,7 @@ def draw_text(scrn, txt, x, y, siz, col):  # 입체적인 문자 표시
     scrn.blit(sur, [x, y])
 
 def move_starship(scrn, key):  # 플레이어 기체 이동
-    global idx, tmr, ss_x, ss_y, ss_d, key_spc, key_z, ss_shield, ss_muteki
+    global ss_x, ss_y, ss_d, key_spc, key_z, ss_shield, ss_muteki, tmr, idx
     ss_d = 0 #기본 기체 이미지
     if key[K_UP] == 1:
         ss_y = ss_y - 20
@@ -106,12 +101,12 @@ def move_starship(scrn, key):  # 플레이어 기체 이동
     key_spc = (key_spc + 1) * key[K_SPACE] #스페이스 키를 누르는 동안 변수 값 증가
     if key_spc % 5 == 1: #스페이스 누른 후, 5프레임마다 탄환 발사(탄환 딜레이)
         set_missile(0) #탄환 발사
-        se_shot.play() #발사음 출력
+        Sound.se_shot.play() #발사음 출력
     key_z = (key_z + 1) * key[K_z] #z키를 누르는 동안 변수 값 증가
     if key_z == 1 and ss_shield > 10: #한번 눌렀을 때 실드량이 10보다 크다면~
         set_missile(10) #탄막 치기
         ss_shield = ss_shield - 10 #쉴드량 10 감소
-        se_barrage.play() #탄막 사운드 출력
+        Sound.se_barrage.play() #탄막 사운드 출력
     if ss_muteki % 2 == 0: #0 > 1 > 0 > 1 과 같이 교대로 반복되어 0이 되면 무적
         scrn.blit(Image.img_sship[3], [ss_x - 8, ss_y + 40 + (tmr % 3) * 2]) #엔진 불꽃 그리기
         scrn.blit(Image.img_sship[ss_d], [ss_x - 37, ss_y - 48]) #기체 그리기     
@@ -133,20 +128,18 @@ def move_starship(scrn, key):  # 플레이어 기체 이동
                         tmr = 0 
                     if ss_muteki == 0: #무적 상태가 아니라면
                         ss_muteki = 60 #60프레임으로 설정
-                        se_damage.play() #데미지 효과음 출력
+                        Sound.se_damage.play() #데미지 효과음 출력
                     if emy_type[i] < EMY_BOSS: #접촉한 기체가 보스가 아니라면..
                         emy_f[i] = False #적 삭제
 
 def set_missile(typ):  # 플레이어 기체 발사 탄환 설정
-    global msl_no 
-    
+    global msl_no
     if typ == 0:  # 단발
         msl_f[msl_no] = True #탄환 발사 플래그
         msl_x[msl_no] = ss_x #탄환의 x좌표 대입
         msl_y[msl_no] = ss_y - 50 #탄환의 y좌표 대입
         msl_a[msl_no] = 270 #탄환 발사 각도
         msl_no = (msl_no + 1) % MISSILE_MAX #탄환 변호 계산
-    
     if typ == 10:  # 탄막
         for a in range(160, 390, 10):
             msl_f[msl_no] = True #탄막 발사 플레그
@@ -201,10 +194,8 @@ def bring_enemy():  # 적 기체 등장
             set_enemy(random.randint(20, 940), LINE_T, 90, EMY_ZAKO + 1, 12, 1)  # 적 2
             set_enemy(random.randint(100, 860), LINE_T, random.randint(60, 120), EMY_ZAKO + 2, 6, 3)  # 적 3
             set_enemy(random.randint(100, 860), LINE_T, 90, EMY_ZAKO + 3, 12, 2)  # 적 4
-
     if tmr == 30 * 270:  # 보스 출현
         set_enemy(480, -210, 90, EMY_BOSS, 4, 200)
-
 
 def set_enemy(x, y, a, ty, sp, sh):  # 적 기체 설정
     global emy_no
@@ -285,7 +276,7 @@ def move_enemy(scrn):  # 적 기체 이동
                                 tmr = 0
                                 for j in range(10):
                                     set_effect(emy_x[i] + random.randint(-er, er), emy_y[i] + random.randint(-er, er))
-                                se_explosion.play()
+                                Sound.se_explosion.play() #사운드 출력
 
             img_rz = pygame.transform.rotozoom(Image.img_enemy[png], ang, 1.0) #적 회전 시킨 이미지 생성
             scrn.blit(img_rz, [emy_x[i] - img_rz.get_width() / 2, emy_y[i] - img_rz.get_height() / 2])
@@ -307,17 +298,12 @@ def draw_effect(scrn):  # 폭발 연출
                      
 def main():  # 메인 루프
     global idx, tmr, score, new_record, bg_y, ss_x, ss_y, ss_d, ss_shield, ss_muteki
-    global se_barrage, se_damage, se_explosion, se_shot
-
+    
     pygame.init()
     pygame.display.set_caption("Galaxy Lancer")
     screen = pygame.display.set_mode((960, 720))
     clock = pygame.time.Clock()
-    se_barrage = pygame.mixer.Sound("sound_gl/barrage.ogg")
-    se_damage = pygame.mixer.Sound("sound_gl/damage.ogg")
-    se_explosion = pygame.mixer.Sound("sound_gl/explosion.ogg")
-    se_shot = pygame.mixer.Sound("sound_gl/shot.ogg")
-
+    
     while True:
         tmr = tmr + 1
         for event in pygame.event.get():
@@ -356,8 +342,9 @@ def main():  # 메인 루프
                     emy_f[i] = False
                 for i in range(MISSILE_MAX):
                     msl_f[i] = False
-                pygame.mixer.music.load("sound_gl/bgm.ogg") #BGM 로딩
-                pygame.mixer.music.play(-1) #무한반복 재생
+                #pygame.mixer.music.load("sound_gl/bgm.ogg") #BGM 로딩
+                #pygame.mixer.music.play(-1) #무한반복 재생
+                Sound.se_bgm.play(-1)
         
         if idx == 1:  # 게임 플레이 중
             move_starship(screen, key)
@@ -374,10 +361,11 @@ def main():  # 메인 루프
                 if tmr % 5 == 0:
                     set_effect(ss_x + random.randint(-60, 60), ss_y + random.randint(-60, 60))
                 if tmr % 10 == 0:
-                    se_damage.play()
+                    Sound.se_damage.play()
             if tmr == 120:
-                pygame.mixer.music.load("sound_gl/gameover.ogg")
-                pygame.mixer.music.play(0)
+                #pygame.mixer.music.load("sound_gl/gameover.ogg")
+                #pygame.mixer.music.play(0)
+                Sound.se_gameover.play(0)
             if tmr > 120:
                 draw_text(screen, "GAME OVER", 480, 300, 80, Image.RED)
                 if new_record == True:
@@ -394,8 +382,9 @@ def main():  # 메인 루프
             if tmr < 30 and tmr % 2 == 0:
                 pygame.draw.rect(screen, (192, 0, 0), [0, 0, 960, 720])
             if tmr == 120:
-                pygame.mixer.music.load("sound_gl/gameclear.ogg")
-                pygame.mixer.music.play(0)
+                #pygame.mixer.music.load("sound_gl/gameclear.ogg")
+                #pygame.mixer.music.play(0)
+                Sound.se_gameclear.play(0)
             if tmr > 120:
                 draw_text(screen, "GAME CLEAR", 480, 300, 80, Image.SILVER)
                 if new_record == True:
